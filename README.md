@@ -482,7 +482,7 @@ time="2025-01-21T12:26:00Z" level=debug msg="Checking if cluster https://kuberne
 time="2025-01-21T12:26:00Z" level=debug msg="Skipping sharding distribution update. No relevant changes"
 ```
 
-Expected to fail but it is ok:
+:warning: Expected to fail but it is ok:
 
 ```console
 Message:            successfully synced (no more tasks)
