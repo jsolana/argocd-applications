@@ -4,6 +4,8 @@ kind: Application
 metadata:
   name: busybox-echo
   namespace: argocd
+  annotations:
+    argocd.argoproj.io/compare-options: ServerSideDiff=true
 spec:
   destination:
     namespace: busybox-echo
@@ -24,4 +26,8 @@ spec:
         maxDuration: 1m
       limit: 2
     syncOptions:
-    - CreateNamespace=true
+    - ApplyOutOfSyncOnly=true
+    - Validate=true
+    - PrunePropagationPolicy=foreground
+    - FailOnSharedResource=true
+    - ServerSideApply=true
