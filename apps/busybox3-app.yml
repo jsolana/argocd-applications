@@ -2,11 +2,13 @@
 apiVersion: argoproj.io/v1alpha1
 kind: Application
 metadata:
-  name: busybox2-echo
+  name: busybox3-echo
   namespace: argocd
+  annotations:
+    argocd.argoproj.io/compare-options: ServerSideDiff=true
 spec:
   destination:
-    namespace: busybox2-echo
+    namespace: busybox3-echo
     server: https://kubernetes.default.svc
   project: default
   source:
@@ -24,5 +26,4 @@ spec:
         maxDuration: 1m
       limit: 2
     syncOptions:
-    - ServerSideApply=true
     - CreateNamespace=true
