@@ -269,7 +269,148 @@ spec:
             maxDuration: 3m
 ```
 
-To test dry run:
+## Dry Run
+
+Firs of all, lets gonna create `busybox-echo` app:
+
+```bash
+kubectl apply -f apps/busybox-app-yml
+```
+
+Second, lets gonna create all this changes in a branch called `dry-run`.
+
+To test dry run first check updating an already existent resource (in this case, the deployment):
+
+```yaml
+# we are gona use manifests/busyboz/deployment.yml cause previously we installed busybox-app
+# change using latest in a branch called dryrun
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: busybox-dev-echo
+  labels:
+    tier: "3"
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: busybox-dev-echo
+  template:
+    metadata:
+      labels:
+        app: busybox-dev-echo
+        tier: "3"
+    spec:
+      containers:
+      - name: busybox
+        image: busybox:latest
+        command: ["/bin/sh", "-c"]
+        args: ["while true; do echo Hello Dev; sleep 5; done"]
+        resources:
+          requests:
+            memory: "64Mi"
+            cpu: "100m"
+          limits:
+            memory: "128Mi"
+            cpu: "200m"
+
+```
+
+Execute  argocd cli:
+
+```bash
+argocd app sync busybox-echo --revision dry-run --dry-run --timeout 60 --retry-limit 1
+```
+
+Here is the log of argocd application controller:
+
+```log
+time="2025-01-21T12:17:17Z" level=debug msg="Checking if cluster https://kubernetes.default.svc with clusterShard 0 should be processed by shard 0"
+time="2025-01-21T12:17:17Z" level=debug msg="Skipping sharding distribution update. No relevant changes"
+time="2025-01-21T12:17:17Z" level=info msg="Start Update application operation state"
+time="2025-01-21T12:17:17Z" level=debug msg="Checking if cluster https://kubernetes.default.svc with clusterShard 0 should be processed by shard 0"
+time="2025-01-21T12:17:17Z" level=debug msg="Skipping sharding distribution update. No relevant changes"
+time="2025-01-21T12:17:17Z" level=info msg="Completed Update application operation state"
+time="2025-01-21T12:17:17Z" level=info msg="updated 'argocd/busybox-echo' operation (phase: Running)" app-namespace=argocd app-qualified-name=argocd/busybox-echo application=busybox-echo project=default
+time="2025-01-21T12:17:17Z" level=info msg="Initialized new operation: {&SyncOperation{Revision:e719c0e7684378b186be3b6f762b604deeb7d0a4,Prune:false,DryRun:true,SyncStrategy:&SyncStrategy{Apply:nil,Hook:&SyncStrategyHook{SyncStrategyApply:SyncStrategyApply{Force:false,},},},Resources:[]SyncOperationResource{},Source:nil,Manifests:[],SyncOptions:[CreateNamespace=true],Sources:[]ApplicationSource{},Revisions:[],} {admin false} [] {1 &Backoff{Duration:5s,Factor:*2,MaxDuration:3m0s,}}}" app-namespace=argocd app-qualified-name=argocd/busybox-echo application=busybox-echo project=default
+time="2025-01-21T12:17:17Z" level=info msg="Comparing app state (cluster: https://kubernetes.default.svc, namespace: busybox-echo)" application=argocd/busybox-echo
+time="2025-01-21T12:17:17Z" level=debug msg="Generating Manifest for source {https://github.com/jsolana/argocd-applications manifests/busybox HEAD nil nil nil nil  } revision e719c0e7684378b186be3b6f762b604deeb7d0a4"
+time="2025-01-21T12:17:17Z" level=info msg="GetRepoObjs stats" application=argocd/busybox-echo build_options_ms=0 helm_ms=0 plugins_ms=0 repo_ms=0 time_ms=13 unmarshal_ms=11 version_ms=0
+time="2025-01-21T12:17:17Z" level=debug msg="Retrieved live manifests" application=argocd/busybox-echo
+time="2025-01-21T12:17:17Z" level=debug msg=revisionChanged application=argocd/busybox-echo useDiffCache=false
+time="2025-01-21T12:17:17Z" level=info msg="Applying resource Deployment/busybox-dev-echo in cluster: https://10.96.0.1:443, namespace: busybox-echo" dry-run=server manager=argocd-controller serverSideApply=true serverSideDiff=true
+time="2025-01-21T12:17:17Z" level=info msg="{\"apiVersion\":\"apps/v1\",\"kind\":\"Deployment\",\"metadata\":{\"labels\":{\"app.kubernetes.io/instance\":\"busybox-echo\",\"tier\":\"3\"},\"name\":\"busybox-dev-echo\",\"namespace\":\"busybox-echo\"},\"spec\":{\"replicas\":1,\"selector\":{\"matchLabels\":{\"app\":\"busybox-dev-echo\"}},\"template\":{\"metadata\":{\"labels\":{\"app\":\"busybox-dev-echo\",\"tier\":\"3\"}},\"spec\":{\"containers\":[{\"args\":[\"while true; do echo Hello Dev; sleep 5; done\"],\"command\":[\"/bin/sh\",\"-c\"],\"image\":\"busybox:latest\",\"name\":\"busybox\",\"resources\":{\"limits\":{\"cpu\":\"200m\",\"memory\":\"128Mi\"},\"requests\":{\"cpu\":\"100m\",\"memory\":\"64Mi\"}}}]}}}}"
+time="2025-01-21T12:17:17Z" level=info msg="Start Update application operation state"
+time="2025-01-21T12:17:17Z" level=info msg="Completed Update application operation state"
+time="2025-01-21T12:17:17Z" level=info msg="updated 'argocd/busybox-echo' operation (phase: Running)" app-namespace=argocd app-qualified-name=argocd/busybox-echo application=busybox-echo project=default
+time="2025-01-21T12:17:17Z" level=debug msg="Checking if cluster https://kubernetes.default.svc with clusterShard 0 should be processed by shard 0"
+time="2025-01-21T12:17:17Z" level=debug msg="Skipping sharding distribution update. No relevant changes"
+time="2025-01-21T12:17:17Z" level=info msg="Skipping retrying in-progress operation. Attempting again at: 2025-01-21T12:17:27Z" app-namespace=argocd app-qualified-name=argocd/busybox-echo application=busybox-echo project=default
+time="2025-01-21T12:17:17Z" level=info msg="Skipping retrying in-progress operation. Attempting again at: 2025-01-21T12:17:27Z" app-namespace=argocd app-qualified-name=argocd/busybox-echo application=busybox-echo project=default
+```
+
+This ends with an error:
+
+```console
+Message:            ComparisonError: Failed to compare desired state to live state: failed to calculate diff: error calculating server side diff: serverSideDiff error: error running server side apply in dryrun mode for resource Deployment/busybox-dev-echo: admission webhook "validate.kyverno.svc-fail" denied the request: 
+
+resource Deployment/busybox-echo/busybox-dev-echo was blocked due to the following policies 
+
+disallow-latest-tag:
+  autogen-validate-image-tag: 'validation failure: validation error: Using a mutable
+    image tag e.g. ''latest'' is not allowed. rule autogen-validate-image-tag failed
+    at path /image/' (retried 1 times).
+```
+
+Lets undo and test with a new resource (non existent yet):
+
+```log
+time="2025-01-21T12:22:11Z" level=debug msg="Checking if cluster https://kubernetes.default.svc with clusterShard 0 should be processed by shard 0"
+time="2025-01-21T12:22:11Z" level=debug msg="Skipping sharding distribution update. No relevant changes"
+time="2025-01-21T12:22:11Z" level=info msg="Start Update application operation state"
+time="2025-01-21T12:22:11Z" level=info msg="Completed Update application operation state"
+time="2025-01-21T12:22:11Z" level=info msg="updated 'argocd/busybox-echo' operation (phase: Running)" app-namespace=argocd app-qualified-name=argocd/busybox-echo application=busybox-echo project=default
+time="2025-01-21T12:22:11Z" level=info msg="Initialized new operation: {&SyncOperation{Revision:1a5ed6793fad7f757af578923b901cc5e930ad07,Prune:false,DryRun:true,SyncStrategy:&SyncStrategy{Apply:nil,Hook:&SyncStrategyHook{SyncStrategyApply:SyncStrategyApply{Force:false,},},},Resources:[]SyncOperationResource{},Source:nil,Manifests:[],SyncOptions:[CreateNamespace=true],Sources:[]ApplicationSource{},Revisions:[],} {admin false} [] {1 &Backoff{Duration:5s,Factor:*2,MaxDuration:3m0s,}}}" app-namespace=argocd app-qualified-name=argocd/busybox-echo application=busybox-echo project=default
+time="2025-01-21T12:22:11Z" level=info msg="Comparing app state (cluster: https://kubernetes.default.svc, namespace: busybox-echo)" application=argocd/busybox-echo
+time="2025-01-21T12:22:11Z" level=debug msg="Checking if cluster https://kubernetes.default.svc with clusterShard 0 should be processed by shard 0"
+time="2025-01-21T12:22:11Z" level=debug msg="Skipping sharding distribution update. No relevant changes"
+time="2025-01-21T12:22:11Z" level=debug msg="Generating Manifest for source {https://github.com/jsolana/argocd-applications manifests/busybox HEAD nil nil nil nil  } revision 1a5ed6793fad7f757af578923b901cc5e930ad07"
+time="2025-01-21T12:22:12Z" level=info msg="GetRepoObjs stats" application=argocd/busybox-echo build_options_ms=0 helm_ms=2 plugins_ms=0 repo_ms=0 time_ms=836 unmarshal_ms=833 version_ms=0
+time="2025-01-21T12:22:12Z" level=debug msg="Retrieved live manifests" application=argocd/busybox-echo
+time="2025-01-21T12:22:12Z" level=debug msg=revisionChanged application=argocd/busybox-echo useDiffCache=false
+time="2025-01-21T12:22:12Z" level=info msg="Applying resource Deployment/busybox-dev-echo in cluster: https://10.96.0.1:443, namespace: busybox-echo" dry-run=server manager=argocd-controller serverSideApply=true serverSideDiff=true
+time="2025-01-21T12:22:12Z" level=info msg="{\"apiVersion\":\"apps/v1\",\"kind\":\"Deployment\",\"metadata\":{\"labels\":{\"app.kubernetes.io/instance\":\"busybox-echo\",\"tier\":\"3\"},\"name\":\"busybox-dev-echo\",\"namespace\":\"busybox-echo\"},\"spec\":{\"replicas\":1,\"selector\":{\"matchLabels\":{\"app\":\"busybox-dev-echo\"}},\"template\":{\"metadata\":{\"labels\":{\"app\":\"busybox-dev-echo\",\"tier\":\"3\"}},\"spec\":{\"containers\":[{\"args\":[\"while true; do echo Hello Dev; sleep 5; done\"],\"command\":[\"/bin/sh\",\"-c\"],\"image\":\"busybox\",\"name\":\"busybox\",\"resources\":{\"limits\":{\"cpu\":\"200m\",\"memory\":\"128Mi\"},\"requests\":{\"cpu\":\"100m\",\"memory\":\"64Mi\"}}}]}}}}"
+time="2025-01-21T12:22:12Z" level=info msg=Syncing application=argocd/busybox-echo skipHooks=false started=false syncId=00021-dbRTf
+time="2025-01-21T12:22:12Z" level=info msg="Tasks from managed resources" application=argocd/busybox-echo resourceTasks="[Sync/0 resource apps/Deployment:busybox-echo/busybox-dev-echo obj->obj (,,)]" syncId=00021-dbRTf
+time="2025-01-21T12:22:12Z" level=info msg="tasks from hooks" application=argocd/busybox-echo hookTasks="[]" syncId=00021-dbRTf
+time="2025-01-21T12:22:12Z" level=info msg="Namespace already exists" application=argocd/busybox-echo namespace=busybox-echo syncId=00021-dbRTf
+time="2025-01-21T12:22:12Z" level=info msg="Tasks (dry-run)" application=argocd/busybox-echo syncId=00021-dbRTf tasks="[Sync/0 resource apps/Deployment:busybox-echo/busybox-dev-echo obj->obj (,,)]"
+time="2025-01-21T12:22:12Z" level=info msg="Running tasks" application=argocd/busybox-echo dryRun=true numTasks=1 syncId=00021-dbRTf
+time="2025-01-21T12:22:12Z" level=info msg=Applying application=argocd/busybox-echo dryRun=true syncId=00021-dbRTf task="Sync/0 resource apps/Deployment:busybox-echo/busybox-dev-echo obj->obj (,,)"
+time="2025-01-21T12:22:12Z" level=info msg="Applying resource Deployment/busybox-dev-echo in cluster: https://10.96.0.1:443, namespace: busybox-echo" dry-run=client manager=argocd-controller serverSideApply=false serverSideDiff=false
+time="2025-01-21T12:22:12Z" level=info msg="{\"apiVersion\":\"apps/v1\",\"kind\":\"Deployment\",\"metadata\":{\"labels\":{\"app.kubernetes.io/instance\":\"busybox-echo\",\"tier\":\"3\"},\"name\":\"busybox-dev-echo\",\"namespace\":\"busybox-echo\"},\"spec\":{\"replicas\":1,\"selector\":{\"matchLabels\":{\"app\":\"busybox-dev-echo\"}},\"template\":{\"metadata\":{\"labels\":{\"app\":\"busybox-dev-echo\",\"tier\":\"3\"}},\"spec\":{\"containers\":[{\"args\":[\"while true; do echo Hello Dev; sleep 5; done\"],\"command\":[\"/bin/sh\",\"-c\"],\"image\":\"busybox\",\"name\":\"busybox\",\"resources\":{\"limits\":{\"cpu\":\"200m\",\"memory\":\"128Mi\"},\"requests\":{\"cpu\":\"100m\",\"memory\":\"64Mi\"}}}]}}}}"
+time="2025-01-21T12:22:12Z" level=info msg="Adding resource result, status: 'Synced', phase: 'Succeeded', message: 'deployment.apps/busybox-dev-echo configured (dry run)'" application=argocd/busybox-echo kind=Deployment name=busybox-dev-echo namespace=busybox-echo phase=Sync syncId=00021-dbRTf
+time="2025-01-21T12:22:12Z" level=info msg="Filtering out non-pending tasks" application=argocd/busybox-echo syncId=00021-dbRTf tasks="[Sync/0 resource apps/Deployment:busybox-echo/busybox-dev-echo obj->obj (Synced,Succeeded,deployment.apps/busybox-dev-echo configured (dry run))]"
+time="2025-01-21T12:22:12Z" level=info msg="Updating operation state. phase: Running -> Succeeded, message: '' -> 'successfully synced (no more tasks)'" application=argocd/busybox-echo syncId=00021-dbRTf
+time="2025-01-21T12:22:12Z" level=info msg="sync/terminate complete" application=argocd/busybox-echo duration=47.079916ms syncId=00021-dbRTf
+time="2025-01-21T12:22:12Z" level=info msg="Start Update application operation state"
+time="2025-01-21T12:22:12Z" level=info msg="Completed Update application operation state"
+time="2025-01-21T12:22:12Z" level=info msg="updated 'argocd/busybox-echo' operation (phase: Succeeded)" app-namespace=argocd app-qualified-name=argocd/busybox-echo application=busybox-echo project=default
+time="2025-01-21T12:22:12Z" level=debug msg="Checking if cluster https://kubernetes.default.svc with clusterShard 0 should be processed by shard 0"
+time="2025-01-21T12:22:12Z" level=debug msg="Skipping sharding distribution update. No relevant changes"
+time="2025-01-21T12:22:12Z" level=info msg="Sync operation to 1a5ed6793fad7f757af578923b901cc5e930ad07 succeeded" application=busybox-echo dest-namespace=busybox-echo dest-server="https://kubernetes.default.svc" reason=OperationCompleted type=Normal
+```
+
+This execution ends ok:
+
+```console
+Message:            successfully synced (no more tasks)
+
+GROUP  KIND        NAMESPACE     NAME              STATUS  HEALTH   HOOK  MESSAGE
+apps   Deployment  busybox-echo  busybox-dev-echo  Synced  Healthy        deployment.apps/busybox-dev-echo configured (dry run)
+```
+
+Lets create a new resource and lets see the execution:
 
 ```yaml
 ---
@@ -298,4 +439,55 @@ spec:
         ports:
         - containerPort: 80
 
+```console
+time="2025-01-21T12:25:59Z" level=debug msg="Checking if cluster https://kubernetes.default.svc with clusterShard 0 should be processed by shard 0"
+time="2025-01-21T12:25:59Z" level=debug msg="Successfully saved info of 1 clusters"
+time="2025-01-21T12:25:59Z" level=debug msg="Checking if cluster https://kubernetes.default.svc with clusterShard 0 should be processed by shard 0"
+time="2025-01-21T12:25:59Z" level=debug msg="Skipping sharding distribution update. No relevant changes"
+time="2025-01-21T12:25:59Z" level=info msg="Start Update application operation state"
+time="2025-01-21T12:25:59Z" level=info msg="Completed Update application operation state"
+time="2025-01-21T12:25:59Z" level=info msg="updated 'argocd/busybox-echo' operation (phase: Running)" app-namespace=argocd app-qualified-name=argocd/busybox-echo application=busybox-echo project=default
+time="2025-01-21T12:25:59Z" level=info msg="Initialized new operation: {&SyncOperation{Revision:11f592acc1ac1a6fae3ab8c238a5fceaf1add611,Prune:false,DryRun:true,SyncStrategy:&SyncStrategy{Apply:nil,Hook:&SyncStrategyHook{SyncStrategyApply:SyncStrategyApply{Force:false,},},},Resources:[]SyncOperationResource{},Source:nil,Manifests:[],SyncOptions:[CreateNamespace=true],Sources:[]ApplicationSource{},Revisions:[],} {admin false} [] {1 &Backoff{Duration:5s,Factor:*2,MaxDuration:3m0s,}}}" app-namespace=argocd app-qualified-name=argocd/busybox-echo application=busybox-echo project=default
+time="2025-01-21T12:25:59Z" level=info msg="Comparing app state (cluster: https://kubernetes.default.svc, namespace: busybox-echo)" application=argocd/busybox-echo
+time="2025-01-21T12:25:59Z" level=debug msg="Checking if cluster https://kubernetes.default.svc with clusterShard 0 should be processed by shard 0"
+time="2025-01-21T12:25:59Z" level=debug msg="Skipping sharding distribution update. No relevant changes"
+time="2025-01-21T12:25:59Z" level=debug msg="Generating Manifest for source {https://github.com/jsolana/argocd-applications manifests/busybox HEAD nil nil nil nil  } revision 11f592acc1ac1a6fae3ab8c238a5fceaf1add611"
+time="2025-01-21T12:25:59Z" level=info msg="GetRepoObjs stats" application=argocd/busybox-echo build_options_ms=0 helm_ms=2 plugins_ms=0 repo_ms=0 time_ms=20 unmarshal_ms=17 version_ms=0
+time="2025-01-21T12:25:59Z" level=debug msg="Retrieved live manifests" application=argocd/busybox-echo
+time="2025-01-21T12:25:59Z" level=debug msg=revisionChanged application=argocd/busybox-echo useDiffCache=false
+time="2025-01-21T12:25:59Z" level=info msg="Applying resource Deployment/busybox-dev-echo in cluster: https://10.96.0.1:443, namespace: busybox-echo" dry-run=server manager=argocd-controller serverSideApply=true serverSideDiff=true
+time="2025-01-21T12:25:59Z" level=info msg="{\"apiVersion\":\"apps/v1\",\"kind\":\"Deployment\",\"metadata\":{\"labels\":{\"app.kubernetes.io/instance\":\"busybox-echo\",\"tier\":\"3\"},\"name\":\"busybox-dev-echo\",\"namespace\":\"busybox-echo\"},\"spec\":{\"replicas\":1,\"selector\":{\"matchLabels\":{\"app\":\"busybox-dev-echo\"}},\"template\":{\"metadata\":{\"labels\":{\"app\":\"busybox-dev-echo\",\"tier\":\"3\"}},\"spec\":{\"containers\":[{\"args\":[\"while true; do echo Hello Dev; sleep 5; done\"],\"command\":[\"/bin/sh\",\"-c\"],\"image\":\"busybox\",\"name\":\"busybox\",\"resources\":{\"limits\":{\"cpu\":\"200m\",\"memory\":\"128Mi\"},\"requests\":{\"cpu\":\"100m\",\"memory\":\"64Mi\"}}}]}}}}"
+time="2025-01-21T12:25:59Z" level=info msg=Syncing application=argocd/busybox-echo skipHooks=false started=false syncId=00023-HAyFy
+time="2025-01-21T12:25:59Z" level=info msg="Tasks from managed resources" application=argocd/busybox-echo resourceTasks="[Sync/0 resource apps/StatefulSet:busybox-echo/nginx-statefulset nil->obj (,,), Sync/0 resource apps/Deployment:busybox-echo/busybox-dev-echo obj->obj (,,)]" syncId=00023-HAyFy
+time="2025-01-21T12:25:59Z" level=info msg="tasks from hooks" application=argocd/busybox-echo hookTasks="[]" syncId=00023-HAyFy
+time="2025-01-21T12:25:59Z" level=info msg="Namespace already exists" application=argocd/busybox-echo namespace=busybox-echo syncId=00023-HAyFy
+time="2025-01-21T12:25:59Z" level=info msg="Tasks (dry-run)" application=argocd/busybox-echo syncId=00023-HAyFy tasks="[Sync/0 resource apps/Deployment:busybox-echo/busybox-dev-echo obj->obj (,,), Sync/0 resource apps/StatefulSet:busybox-echo/nginx-statefulset nil->obj (,,)]"
+time="2025-01-21T12:25:59Z" level=info msg="Running tasks" application=argocd/busybox-echo dryRun=true numTasks=2 syncId=00023-HAyFy
+time="2025-01-21T12:25:59Z" level=info msg=Applying application=argocd/busybox-echo dryRun=true syncId=00023-HAyFy task="Sync/0 resource apps/Deployment:busybox-echo/busybox-dev-echo obj->obj (,,)"
+time="2025-01-21T12:25:59Z" level=info msg="Applying resource Deployment/busybox-dev-echo in cluster: https://10.96.0.1:443, namespace: busybox-echo" dry-run=client manager=argocd-controller serverSideApply=false serverSideDiff=false
+time="2025-01-21T12:25:59Z" level=info msg="{\"apiVersion\":\"apps/v1\",\"kind\":\"Deployment\",\"metadata\":{\"labels\":{\"app.kubernetes.io/instance\":\"busybox-echo\",\"tier\":\"3\"},\"name\":\"busybox-dev-echo\",\"namespace\":\"busybox-echo\"},\"spec\":{\"replicas\":1,\"selector\":{\"matchLabels\":{\"app\":\"busybox-dev-echo\"}},\"template\":{\"metadata\":{\"labels\":{\"app\":\"busybox-dev-echo\",\"tier\":\"3\"}},\"spec\":{\"containers\":[{\"args\":[\"while true; do echo Hello Dev; sleep 5; done\"],\"command\":[\"/bin/sh\",\"-c\"],\"image\":\"busybox\",\"name\":\"busybox\",\"resources\":{\"limits\":{\"cpu\":\"200m\",\"memory\":\"128Mi\"},\"requests\":{\"cpu\":\"100m\",\"memory\":\"64Mi\"}}}]}}}}"
+time="2025-01-21T12:25:59Z" level=info msg="Adding resource result, status: 'Synced', phase: 'Succeeded', message: 'deployment.apps/busybox-dev-echo configured (dry run)'" application=argocd/busybox-echo kind=Deployment name=busybox-dev-echo namespace=busybox-echo phase=Sync syncId=00023-HAyFy
+time="2025-01-21T12:25:59Z" level=info msg=Applying application=argocd/busybox-echo dryRun=true syncId=00023-HAyFy task="Sync/0 resource apps/StatefulSet:busybox-echo/nginx-statefulset nil->obj (,,)"
+time="2025-01-21T12:25:59Z" level=info msg="Applying resource StatefulSet/nginx-statefulset in cluster: https://10.96.0.1:443, namespace: busybox-echo" dry-run=client manager=argocd-controller serverSideApply=false serverSideDiff=false
+time="2025-01-21T12:25:59Z" level=info msg="{\"apiVersion\":\"apps/v1\",\"kind\":\"StatefulSet\",\"metadata\":{\"labels\":{\"app\":\"helloworld\",\"app.kubernetes.io/instance\":\"busybox-echo\"},\"name\":\"nginx-statefulset\",\"namespace\":\"busybox-echo\"},\"spec\":{\"replicas\":2,\"selector\":{\"matchLabels\":{\"app\":\"helloworld\"}},\"serviceName\":\"nginx-service\",\"template\":{\"metadata\":{\"labels\":{\"app\":\"helloworld\"}},\"spec\":{\"containers\":[{\"image\":\"nginx:latest\",\"name\":\"nginx\",\"ports\":[{\"containerPort\":80}]}]}}}}"
+time="2025-01-21T12:26:00Z" level=info msg="Adding resource result, status: 'Synced', phase: 'Succeeded', message: 'statefulset.apps/nginx-statefulset created (dry run)'" application=argocd/busybox-echo kind=StatefulSet name=nginx-statefulset namespace=busybox-echo phase=Sync syncId=00023-HAyFy
+time="2025-01-21T12:26:00Z" level=info msg="Filtering out non-pending tasks" application=argocd/busybox-echo syncId=00023-HAyFy tasks="[Sync/0 resource apps/Deployment:busybox-echo/busybox-dev-echo obj->obj (Synced,Succeeded,deployment.apps/busybox-dev-echo configured (dry run)), Sync/0 resource apps/StatefulSet:busybox-echo/nginx-statefulset nil->obj (Synced,Succeeded,statefulset.apps/nginx-statefulset created (dry run))]"
+time="2025-01-21T12:26:00Z" level=info msg="Updating operation state. phase: Running -> Succeeded, message: '' -> 'successfully synced (no more tasks)'" application=argocd/busybox-echo syncId=00023-HAyFy
+time="2025-01-21T12:26:00Z" level=info msg="sync/terminate complete" application=argocd/busybox-echo duration=69.453243ms syncId=00023-HAyFy
+time="2025-01-21T12:26:00Z" level=info msg="Start Update application operation state"
+time="2025-01-21T12:26:00Z" level=info msg="Completed Update application operation state"
+time="2025-01-21T12:26:00Z" level=info msg="updated 'argocd/busybox-echo' operation (phase: Succeeded)" app-namespace=argocd app-qualified-name=argocd/busybox-echo application=busybox-echo project=default
+time="2025-01-21T12:26:00Z" level=info msg="Sync operation to 11f592acc1ac1a6fae3ab8c238a5fceaf1add611 succeeded" application=busybox-echo dest-namespace=busybox-echo dest-server="https://kubernetes.default.svc" reason=OperationCompleted type=Normal
+time="2025-01-21T12:26:00Z" level=debug msg="Checking if cluster https://kubernetes.default.svc with clusterShard 0 should be processed by shard 0"
+time="2025-01-21T12:26:00Z" level=debug msg="Skipping sharding distribution update. No relevant changes"
+```
+
+Expected to fail but it is ok:
+
+```console
+Message:            successfully synced (no more tasks)
+
+GROUP  KIND         NAMESPACE     NAME               STATUS     HEALTH   HOOK  MESSAGE
+apps   Deployment   busybox-echo  busybox-dev-echo   Synced     Healthy        deployment.apps/busybox-dev-echo configured (dry run)
+apps   StatefulSet  busybox-echo  nginx-statefulset  Succeeded  Synced         statefulset.apps/nginx-statefulset created (dry run)
 ```
