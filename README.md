@@ -100,6 +100,39 @@ helm upgrade -i argo-cd argo/argo-cd -n argocd --create-namespace
 
 # To view the full set of tunable parameters provided by the Argo CD Helm chart
 helm show values argo/argo-cd
+
+# specifying variables
+helm upgrade --install --wait --timeout 15m --atomic --namespace argocd --create-namespace \
+  --repo https://argoproj.github.io/argo-helm argocd argo-cd --values - <<EOF
+dex:
+  enabled: false
+redis:
+  enabled: true
+redis-ha:
+  enabled: false
+repoServer:
+  serviceAccount:
+    create: true
+server:
+  config:
+    resource.compareoptions: |
+      ignoreAggregatedRoles: true
+      ignoreResourceStatusField: all
+    url: http://localhost/argocd
+    application.instanceLabelKey: argocd.argoproj.io/instance
+  extraArgs:
+    - --insecure
+    - --rootpath
+    - /argocd
+  ingress:
+    annotations:
+      kubernetes.io/ingress.class: nginx
+      cert-manager.io/cluster-issuer: ca-issuer
+    enabled: true
+    paths:
+      - /argocd
+EOF
+
 ```
 
 Since the kind cluster was created binding port 80 and 443 of the local machine to the kind node, invoking the curl command against port 80 should verify communication to the ingress controller
