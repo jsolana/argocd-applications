@@ -25,3 +25,4 @@ spec:
       limit: 2
     syncOptions:
     - ServerSideApply=true
+    - CreateNamespace=true
