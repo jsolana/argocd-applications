@@ -24,6 +24,13 @@ spec:
       - resources:
           kinds:
           - Pod
+    exclude:
+      any:
+      - resources:
+          namespaces:
+          - kyverno
+          - kube-system
+          - argocd
     validate:
       message: "Using a mutable image tag e.g. 'latest' is not allowed."
       foreach:

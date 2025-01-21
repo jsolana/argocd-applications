@@ -25,6 +25,7 @@ spec:
           namespaces:
           - kyverno
           - kube-system
+          - argocd
     validate:
       failureAction: Enforce
       message: "Label `tier` with values 1, 2, 3 or 4 must be set on all pods."
