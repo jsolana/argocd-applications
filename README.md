@@ -268,3 +268,34 @@ spec:
             factor: 2
             maxDuration: 3m
 ```
+
+To test dry run:
+
+```yaml
+---
+# StatefulSet
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  name: nginx-statefulset
+  namespace: busybox-echo
+  labels:
+    app: helloworld
+spec:
+  serviceName: "nginx-service"
+  replicas: 2
+  selector:
+    matchLabels:
+      app: helloworld
+  template:
+    metadata:
+      labels:
+        app: helloworld
+    spec:
+      containers:
+      - name: nginx
+        image: nginx:latest
+        ports:
+        - containerPort: 80
+
+```

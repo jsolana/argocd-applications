@@ -26,8 +26,4 @@ spec:
         maxDuration: 1m
       limit: 2
     syncOptions:
-    - ApplyOutOfSyncOnly=true
-    - Validate=true
-    - PrunePropagationPolicy=foreground
-    - FailOnSharedResource=true
-    - ServerSideApply=true
+    - CreateNamespace=true
