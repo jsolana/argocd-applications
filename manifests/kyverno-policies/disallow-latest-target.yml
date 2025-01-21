@@ -24,11 +24,6 @@ spec:
       - resources:
           kinds:
           - Pod
-          operations:
-            - CREATE
-            - UPDATE
-          namespaces:
-          - helloworld
     validate:
       message: "Using a mutable image tag e.g. 'latest' is not allowed."
       foreach:
