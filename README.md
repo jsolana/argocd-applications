@@ -491,3 +491,29 @@ GROUP  KIND         NAMESPACE     NAME               STATUS     HEALTH   HOOK  M
 apps   Deployment   busybox-echo  busybox-dev-echo   Synced     Healthy        deployment.apps/busybox-dev-echo configured (dry run)
 apps   StatefulSet  busybox-echo  nginx-statefulset  Succeeded  Synced         statefulset.apps/nginx-statefulset created (dry run)
 ```
+
+Running `kubectl apply -f sts.yml --dry-run=server` trigger the error expected:
+
+```console
+Error from server: error when creating "sts.yml": admission webhook "validate.kyverno.svc-fail" denied the request: 
+
+resource StatefulSet/busybox-echo/nginx-statefulset was blocked due to the following policies 
+
+disallow-latest-tag:
+  autogen-validate-image-tag: 'validation failure: validation error: Using a mutable
+    image tag e.g. ''latest'' is not allowed. rule autogen-validate-image-tag failed
+    at path /image/'
+validate-labels:
+  autogen-require-tier-label: 'validation error: Label `tier` with values 1, 2, 3
+    or 4 must be set on all pods. rule autogen-require-tier-label failed at path /spec/template/metadata/labels/tier/'
+```
+
+The hypothesis is for new resources, kubectl apply is executed in client mode:
+
+```log
+time="2025-01-21T12:25:59Z" level=info msg="Applying resource StatefulSet/nginx-statefulset in cluster: https://10.96.0.1:443, namespace: busybox-echo" dry-run=client manager=argocd-controller serverSideApply=false serverSideDiff=false
+```
+
+But not sure why.
+
+Maybe it is related with https://github.com/argoproj/argo-cd/issues/13874  [referenced here](https://github.com/argoproj/gitops-engine/blob/847cfc9f8b200e96a70b591a68b9fb385cf2ce56/pkg/sync/sync_context.go#L970)
