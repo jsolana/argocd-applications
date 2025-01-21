@@ -1,3 +1,4 @@
+---
 apiVersion: argoproj.io/v1alpha1
 kind: Application
 metadata:
@@ -9,7 +10,7 @@ spec:
     server: https://kubernetes.default.svc
   project: default
   source:
-    path: busybox/dev
+    path: manifests/busybox
     repoURL: https://github.com/jsolana/argocd-applications
     targetRevision: HEAD
   syncPolicy:

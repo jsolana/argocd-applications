@@ -17,7 +17,7 @@ Install Arco CD in a k8s cluster locally using `kind`
     kubectl create namespace argocd
 
     # install specific version
-    # kubectl apply -n argocd -f https://raw.githubusercontent.com/argoproj/argo-cd/v2.12.0-rc2/manifests/install.yaml
+    # kubectl apply -n argocd -f https://raw.githubusercontent.com/argoproj/argo-cd/v2.12.3/manifests/install.yaml
 
     kubectl apply -n argocd -f https://raw.githubusercontent.com/argoproj/argo-cd/stable/manifests/install.yaml
 
@@ -37,7 +37,7 @@ Alternatively, instead of needing to recreate the entire kind cluster, the YAML 
 
 ```bash
   # delete specific version
-  # kubectl delete -n argocd -f https://raw.githubusercontent.com/argoproj/argo-cd/v2.12.0-rc2/manifests/install.yaml
+  # kubectl delete -n argocd -f https://raw.githubusercontent.com/argoproj/argo-cd/v2.12.3/manifests/install.yaml
 
   kubectl delete -n argocd -f https://raw.githubusercontent.com/argoproj/argo-cd/stable/manifests/install.yaml
   kubectl delete namespace argocd
@@ -152,7 +152,9 @@ To create this Argo CD Application within the Kubernetes cluster, you can apply 
   kubectl apply -f app.yaml
 ````
 
-Examples:
+`apps` directory contains several examples of applications.
+
+In-line examples:
 
 ```yaml
 apiVersion: argoproj.io/v1alpha1
@@ -169,7 +171,7 @@ spec:
     server: https://kubernetes.default.svc
   project: default
   source:
-    path: busybox/echo
+    path: manifests/busybox
     repoURL: https://github.com/jsolana/argocd-applications
     targetRevision: HEAD
   syncPolicy:
@@ -202,7 +204,7 @@ spec:
       repoURL: https://github.com/jsolana/argocd-applications.git
       revision: HEAD
       directories:
-      - path: busybox/*
+      - path: manifests/busybox/*
   template:
     metadata:
       name: '{{path.basename}}'

@@ -1,3 +1,4 @@
+---
 apiVersion: argoproj.io/v1alpha1
 kind: ApplicationSet
 metadata:
@@ -9,7 +10,7 @@ spec:
       repoURL: https://github.com/jsolana/argocd-applications.git
       revision: HEAD
       directories:
-      - path: busybox/*
+      - path: manifests/busybox/*
   template:
     metadata:
       name: '{{path.basename}}'
